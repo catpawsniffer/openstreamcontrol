@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<saved_variables>
+	<sensors>
+		<checkBox_extempenable val="True" />
+		<checkBox_flowenable val="True" />
+	</sensors>
+	<settings>
+		<ext_temp_offset val="0" />
+		<int_temp_offset val="0" />
+		<flow_sensor_calib val="169" />
+	</settings>
+</saved_variables>
