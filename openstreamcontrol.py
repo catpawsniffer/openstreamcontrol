@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-    # AquastreamXT Control
+    # OpenStreamControl
     # A simple Programm to Control the Aquastream XT Pump from Aquacomputer
-    # Copyright (C) 2025  xxxxx mail@bla.xy
+    # Copyright (C) 2026  Cat Sniffer catpawsniffer@proton.me
 
     # This program is free software: you can redistribute it and/or modify
     # it under the terms of the GNU General Public License as published by
@@ -20,16 +20,11 @@
     
     # Uses Qt-6 library https://www.qt.io/development/qt-framework/qt6
     
-    # Partly based on infos from https://github.com/aleksamagicka/aquacomputer_d5next-hwmon
+    # Based on infos from https://github.com/aleksamagicka/aquacomputer_d5next-hwmon
     
     
 ############################################################################
 ############################################################################
-
-#extra/python-hid 1.0.6-3
-#    Python hidapi bindings in ctypes (aka pyhidapi)
-
-##############################################################################
 
 import hid
 import time
