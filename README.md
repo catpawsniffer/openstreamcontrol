@@ -49,6 +49,6 @@ start it with "python3 ./openstreamcontrol.py" in the programs directory
 
 
 ####################################
-# Uses Qt-6 library https://www.qt.io/development/qt-framework/qt6
+Uses Qt-6 library https://www.qt.io/development/qt-framework/qt6
 
-# Based on infos from https://github.com/aleksamagicka/aquacomputer_d5next-hwmon
+Based on infos from https://github.com/aleksamagicka/aquacomputer_d5next-hwmon
