@@ -39,7 +39,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtCore import Signal
 
 #UI Load
-from ui_gui_v8  import Ui_MainWindow
+from ui_gui  import Ui_MainWindow
 
 ############
 from pyqtgraph import PlotWidget, plot
@@ -55,11 +55,10 @@ tree = ET.parse("settings.xml")
 root = tree.getroot() 
 
 
-#vid 0c70    pid f0b6
+#vid 0x0c70    pid 0xf0b6
 vid = 0x0c70	# 
 pid = 0xf0b6	# Aquastream XT
 
-#h = hid.Device(vid, pid)
 
 try:
     h = hid.Device(vid, pid) 
@@ -69,7 +68,7 @@ except:
     print("Check how to gain access as normal user")
     exit()
 
-h.nonblocking=1  
+#h.nonblocking=1  
 
 print("")
 
@@ -83,27 +82,30 @@ print("Product: %s" % h.product)
 product_string = h.product
 
 
-AQUASTREAMXT_SENSOR_FEATURE_REPORT_ID = 0x04   #auch feature report nr 4
+AQUASTREAMXT_SENSOR_FEATURE_REPORT_ID = 0x04   #feature report nr 4
 AQUASTREAMXT_CTRL_FEATURE_REPORT_ID	= 0x06
 
-AQUASTREAMXT_SENSOR_REPORT_SIZE	= 0x43   #66dez
-AQUASTREAMXT_CTRL_REPORT_SIZE =	0x34   #51d
+#define AQUASTREAMXT_SENSOR_REPORT_SIZE		0x42
+#define AQUASTREAMXT_CTRL_REPORT_SIZE		0x34
+AQUASTREAMXT_SENSOR_REPORT_SIZE	= 0x43   #0x42 = 66dec // 0x43 = 67dec   report is 66 bytes
+AQUASTREAMXT_CTRL_REPORT_SIZE =	0x34     #0x34 52d // ox33 = 51dec  report is 51 bytes
 
 #The HID report that the official software always sends after writing value
 #/* Secondary HID report values for Aquastream XT */
-#define AQUASTREAMXT_SECONDARY_CTRL_REPORT_ID	0x02
-#define AQUASTREAMXT_SECONDARY_CTRL_REPORT_SIZE	0x04
+AQUASTREAMXT_SECONDARY_CTRL_REPORT_ID	= 0x02
+AQUASTREAMXT_SECONDARY_CTRL_REPORT_SIZE	= 0x04
 
+#sec_ctrl_report=[0x02, 0x05, 0x00, 0x00] #works
 sec_ctrl_report=[0x02, 0x05, 0x00, 0x00]
 
 
-#ausgabefile = open("meine_ctrl_feature_20.bin", "bw")
-#reportdaten= h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE)    #51 dez
+#ausgabefile = open("meine_ctrl_feature_123.bin", "bw")
+#reportdaten= h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE)    
 #ausgabefile.write(bytes(reportdaten))
 #ausgabefile.close()
 
-#ausgabefile = open("meine_sensor_feature_0.bin", "bw")
-#reportdaten = h.get_feature_report(AQUASTREAMXT_SENSOR_FEATURE_REPORT_ID, AQUASTREAMXT_SENSOR_REPORT_SIZE)    #66 dez
+#ausgabefile = open("meine_sensor_feature_123.bin", "bw")
+#reportdaten = h.get_feature_report(AQUASTREAMXT_SENSOR_FEATURE_REPORT_ID, AQUASTREAMXT_SENSOR_REPORT_SIZE)    
 #ausgabefile.write(bytes(reportdaten))
 #ausgabefile.close()
 
@@ -234,11 +236,11 @@ class MainWindow(QMainWindow):
     bitfield_speed_signal_output_static_speed = 0
     bitfield_speed_signal_output_switch_off_on_alarm = 0    #only applys on static output
     
-    # bitfield FanMode {
+    # bitfield FanMode 
     # manual: 1;
     # automatic: 1;
     # hold_min: 1;
-    # };
+
     
     bitfield_fan_mode_manual_offset = 0
     bitfield_fan_mode_automatic_offset = 1
@@ -248,15 +250,14 @@ class MainWindow(QMainWindow):
     bitfield_fan_mode_automatic = 0
     bitfield_fan_mode_hold_min = 0
     
-    # bitfield PumpMode {   
+    # bitfield PumpMode  
     # padding: 1;    LSB
     # automatic/manual: 1;   (auto = 1 / manual = 0)
     # unknown_value: 1;  (always 1)
     # padding: 1;
     # aquabus/flow switch: 1   (flow = 0 / aquabus = 1)
     # hold_min: 1;
-    # ##???00   #7, 8 = 0  MSB
-    #0, 0, hold_min, aquabus/flow, 0,  1, auto/man, 0
+    # 0, 0, hold_min, aquabus/flow, 0,  1, auto/man, 0
     
     bitfield_pump_mode_hold_min_offset = 5
     bitfield_pump_mode_aquabus_flow_offset = 4
@@ -265,7 +266,7 @@ class MainWindow(QMainWindow):
     bitfield_pump_mode_hold_min = 0
     bitfield_pump_mode_aquabus_flow = 0
     bitfield_pump_mode_auto_man = 0
-    # };
+    
     
     ################################
     #Aquabus
@@ -521,7 +522,7 @@ class MainWindow(QMainWindow):
         self.ui.pushButton_settings_save_to_pump.clicked.connect(self.save_to_pump)
         
         
-        self.ui.pushButton_get_new_ctrl_data.clicked.connect(self.get_new_ctrl_data_and_update_gui)
+        #self.ui.pushButton_get_new_ctrl_data.clicked.connect(self.get_new_ctrl_data_and_update_gui)
         
         self.ui.pushButton_save_ctrl_report_to_disk.clicked.connect(self.get_and_save_ctrl_report_to_disk)
         
@@ -748,7 +749,7 @@ class MainWindow(QMainWindow):
     
     def get_and_save_ctrl_report_to_disk(self):
         ausgabefile = open(self.ui.lineEdit_ctrl_report_file_name.text(), "bw")
-        reportdaten = list(h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE))    #51 dez
+        reportdaten = list(h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE))    #51 dec
         ausgabefile.write(bytes(reportdaten))
         ausgabefile.close()
         print("saved", self.ui.lineEdit_ctrl_report_file_name.text())
@@ -944,6 +945,54 @@ class MainWindow(QMainWindow):
         # self.fan_d = 
         # self.fan_min_temp = 
         # self.fan_max_temp = 
+        
+        #-2
+        if (self.ui.comboBox_fans_pid.currentIndex() == 0):
+            self.fan_hysteresis = 200
+            self.fan_p = 100
+            self.fan_i = 25
+            self.fan_d = 50
+            self.fan_min_temp = 1800
+            self.fan_max_temp = 3700
+            print("Save PID -2")
+        
+        #-1
+        if (self.ui.comboBox_fans_pid.currentIndex() == 1):
+            self.fan_hysteresis = 200
+            self.fan_p = 100    
+            self.fan_i = 50
+            self.fan_d = 50
+            self.fan_min_temp = 1800
+            self.fan_max_temp = 3700  
+            print("Save PID -1")
+        
+        #normal
+        if (self.ui.comboBox_fans_pid.currentIndex() == 2):
+            self.fan_hysteresis = 100
+            self.fan_p = 100
+            self.fan_i = 100
+            self.fan_d = 100
+            self.fan_min_temp = 1900
+            self.fan_max_temp = 3600
+            print("Save PID 0")
+        #+1
+        if (self.ui.comboBox_fans_pid.currentIndex() == 3):
+            self.fan_hysteresis = 100
+            self.fan_p = 2000
+            self.fan_i = 200
+            self.fan_d = 1000
+            self.fan_min_temp = 1900
+            self.fan_max_temp = 3600
+            print("Save PID +1")
+        #+2
+        if (self.ui.comboBox_fans_pid.currentIndex() == 4):
+            self.fan_hysteresis = 50
+            self.fan_p = 4000
+            self.fan_i = 500
+            self.fan_d = 1000
+            self.fan_min_temp = 1950
+            self.fan_max_temp = 3550
+            print("Save PID +2")
         
         # #bitfields
         # self.bitfield_alarm_configuration_external_temp = get_bit(self.ctrl_report[self.alarm_config_bf_offset_8],self.bitfield_alarm_configuration_external_temp_offset)
@@ -1409,6 +1458,8 @@ class MainWindow(QMainWindow):
         self.bitfield_pump_mode_aquabus_flow = get_bit(self.ctrl_report[self.pump_mode_bf_offset_8],self.bitfield_pump_mode_aquabus_flow_offset)
         self.bitfield_pump_mode_auto_man = get_bit(self.ctrl_report[self.pump_mode_bf_offset_8],self.bitfield_pump_mode_auto_man_offset)
     
+        #test
+        #self.fan_hysteresis = 123
     
     def print_data(self):
         
@@ -1568,8 +1619,32 @@ class MainWindow(QMainWindow):
         #self.fan_i
         #self.fan_d
         #self.fan_min_temp     
-        #self.fan_max_temp  
-        
+        #self.fan_max_temp 
+        if ( (self.fan_hysteresis == 200) & (self.fan_p == 100) & (self.fan_i == 25) & (self.fan_d == 50) & (self.fan_min_temp == 1800) & (self.fan_max_temp == 3700)):
+            self.ui.comboBox_fans_pid.setCurrentIndex(0)
+            print("Detected PID Minimum -2")
+        else:
+            if ( (self.fan_hysteresis == 200) & (self.fan_p == 100) & (self.fan_i == 50) & (self.fan_d == 50) & (self.fan_min_temp == 1800) & (self.fan_max_temp == 3700)):
+                self.ui.comboBox_fans_pid.setCurrentIndex(1)    
+                print("Detected PID Slower -1")
+            else:    
+                if ( (self.fan_hysteresis == 100) & (self.fan_p == 100) & (self.fan_i == 100) & (self.fan_d == 100) & (self.fan_min_temp == 1900) & (self.fan_max_temp == 3600)):
+                    self.ui.comboBox_fans_pid.setCurrentIndex(2)    
+                    print("Detected PID Normal")
+                else:
+                    if ( (self.fan_hysteresis == 100) & (self.fan_p == 2000) & (self.fan_i == 200) & (self.fan_d == 1000) & (self.fan_min_temp == 1900) & (self.fan_max_temp == 3600)):
+                        self.ui.comboBox_fans_pid.setCurrentIndex(3)
+                        print("Detected PID Faster +1")
+                    else:
+                        if ( (self.fan_hysteresis == 50) & (self.fan_p == 4000) & (self.fan_i == 500) & (self.fan_d == 1000) & (self.fan_min_temp == 1950) & (self.fan_max_temp == 3550)):
+                            self.ui.comboBox_fans_pid.setCurrentIndex(4)    
+                            print("Detected PID Maximum +2")
+                        else:
+                            print("Detected Custom PID Values")
+                            print("Setting to Normal Speed")
+                            self.ui.comboBox_fans_pid.setCurrentIndex(2)
+                            
+            
         #self.fan_min_pwm
         self.ui.spinBox_fans_auto_fans_min_hz.setValue(self.fan_min_pwm)
         #self.fan_max_pwm
@@ -1824,6 +1899,7 @@ if __name__ == '__main__':
     ##########################
     
     app.exec()      #prog start
+    #sys.exit(app.exec())
     
     ###########################     #Thread stoppen
                                 
@@ -1843,3 +1919,5 @@ if __name__ == '__main__':
     print("Settings Saved")
     
     print("exit")
+    
+    sys.exit() #neccessary ?

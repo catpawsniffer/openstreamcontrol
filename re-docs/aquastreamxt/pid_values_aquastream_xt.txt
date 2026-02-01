@@ -1,0 +1,45 @@
+Aquastream XT PID values
+
+
+hysteresis 0,0 - 10,0
+#####################
+minimum -2
+fan_hysteresis 200     	(2,0)
+fan_p 100
+fan_i 25
+fan_d 50
+fan_min_temp 1800
+fan_max_temp 3700
+######################
+slower -1
+fan_hysteresis 200		(2,0)
+fan_p 100
+fan_i 50
+fan_d 50
+fan_min_temp 1800
+fan_max_temp 3700
+#######################
+normal speed
+fan_hysteresis 100		(1,0)
+fan_p 100
+fan_i 100
+fan_d 100
+fan_min_temp 1900
+fan_max_temp 3600
+######################
+faster +1
+fan_hysteresis 100		(1,0)
+fan_p 2000
+fan_i 200
+fan_d 1000
+fan_min_temp 1900
+fan_max_temp 3600
+#######################
+maximum +2
+fan_hysteresis 50     	(0,5)
+fan_p 4000
+fan_i 500
+fan_d 1000
+fan_min_temp 1950
+fan_max_temp 3550
+
