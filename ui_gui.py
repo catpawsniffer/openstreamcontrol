@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'guiNFYHmW.ui'
+## Form generated from reading UI file 'guirEhYYU.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.10.1
+## Created by: Qt User Interface Compiler version 6.10.2
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -26,7 +26,7 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if not MainWindow.objectName():
             MainWindow.setObjectName(u"MainWindow")
-        MainWindow.setWindowModality(Qt.WindowModality.WindowModal)
+        MainWindow.setWindowModality(Qt.WindowModality.ApplicationModal)
         MainWindow.setEnabled(True)
         MainWindow.resize(1050, 602)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
@@ -277,7 +277,7 @@ class Ui_MainWindow(object):
         self.page_pump_auto.setObjectName(u"page_pump_auto")
         self.label_55 = QLabel(self.page_pump_auto)
         self.label_55.setObjectName(u"label_55")
-        self.label_55.setGeometry(QRect(0, 10, 71, 31))
+        self.label_55.setGeometry(QRect(30, 10, 71, 31))
         self.label_55.setFont(font3)
         self.label_55.setAlignment(Qt.AlignmentFlag.AlignRight|Qt.AlignmentFlag.AlignTrailing|Qt.AlignmentFlag.AlignVCenter)
         self.spinBox_pump_auto_min = QSpinBox(self.page_pump_auto)
@@ -748,7 +748,7 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
 
         self.pushButton_1.setDefault(True)
-        self.stackedWidget_1.setCurrentIndex(2)
+        self.stackedWidget_1.setCurrentIndex(1)
         self.stackedWidget_pump.setCurrentIndex(1)
         self.stackedWidget_fans.setCurrentIndex(0)
         self.comboBox_fans_pid.setCurrentIndex(0)
