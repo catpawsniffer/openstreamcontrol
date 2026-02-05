@@ -23,9 +23,11 @@ If you want to run the python script directly:
 
 you need:
 
-"python3"
+"python v3"
 
 and following python modules:
+
+In most distributions this is done with your standard package manager like "apt" or "pacman" etc...
 
 "Python hidapi bindings in ctypes (aka pyhidapi)"
 "pyside6" and
