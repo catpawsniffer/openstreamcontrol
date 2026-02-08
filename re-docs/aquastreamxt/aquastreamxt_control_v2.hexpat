@@ -43,7 +43,7 @@ le u16 pump_speed @ 0x8;
 BF AlarmConfiguration @ 0xe;
 BF SpeedSignalOutput @ 0xf;
 
-le u32 alarm_flow_speed @ 0x12;
+le u32 alarm_flow_speed @ 0x12;     
 le u16 alarm_external_temp @ 0x16;
 le u16 alarm_water_temp @ 0x18;
 

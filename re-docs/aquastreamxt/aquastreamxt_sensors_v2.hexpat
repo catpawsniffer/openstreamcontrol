@@ -8,7 +8,7 @@ le u16 fan temp 0x0d
 le u16 ext temp 0x0f
 le u16 int temp 0x11
 le u16 pump_speed @ 0x13;
-le u16 flow_sensor = 0x18
+le u16 flow_sensor = 0x18     
 le u16 fan_speed @ 0x1b;
 le u16 fan_status @ 0x1d;
 u8 fan_pwm @ 0x1f;

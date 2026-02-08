@@ -35,7 +35,7 @@ import xml.etree.ElementTree as ET
 
 
 from PySide6 import QtCore, QtGui, QtWidgets
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QApplication, QMainWindow, QSystemTrayIcon
 from PySide6.QtCore import Signal
 
 #UI Load
@@ -127,6 +127,18 @@ def write_int32_le(int32val, report, offset):
     report[offset+2] = byte3
     report[offset+3] = byte4
     
+# def write_int24_le(int24val, report, offset):
+    # int24val = int(int24val)
+    # byte1 = int24val & 0xff
+    # byte2 = (int24val & 0xff00) >> 8
+    # byte3 = (int24val & 0xff0000) >> 16
+    # report[offset] = byte1
+    # report[offset+1] = byte2
+    # report[offset+2] = byte3
+    
+# def read_int24_le(report, offset):
+    # return(report[offset] + report[offset +1] * 0x100 + report[offset + 2] * 0x10000 )
+    
 def read_int16_le(report, offset):
     return (report[offset] + report[offset +1] * 0x100)
     
@@ -166,9 +178,9 @@ aqaubus_adress_offset = 0x01  #aquabus adress
 aquabus_or_flow_offset = 0x02  #0=flow  /  1=aquabus
 aquabus_sensors_select_offset = 0x05  #Sensors on aquabus  0=electronicstemp / 1=externalsensor / 2=watertemp / 0xff=no_sensor
 
-reportdaten= h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE)
+reportdata= h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE)
 
-if (reportdaten[aquabus_or_flow_offset] == 1):
+if (reportdata[aquabus_or_flow_offset] == 1):
     print("")
     print("Your Pump seems to be configured to use Aquabus")
     print("Aquabus not supported. wrong settings can damage your hardware!!")
@@ -178,7 +190,7 @@ if (reportdaten[aquabus_or_flow_offset] == 1):
     print("Good bye")
     exit()
 
-if (reportdaten[aquabus_or_flow_offset] == 0):  #just a double check
+if (reportdata[aquabus_or_flow_offset] == 0):  #just a double check
     print("Aquabus disabled. good")
 else:
     exit()
@@ -234,7 +246,7 @@ class MainWindow(QMainWindow):
     bitfield_speed_signal_output_flow_sensor = 0
     bitfield_speed_signal_output_pump_speed = 0
     bitfield_speed_signal_output_static_speed = 0
-    bitfield_speed_signal_output_switch_off_on_alarm = 0    #only applys on static output
+    bitfield_speed_signal_output_switch_off_on_alarm = 0    
     
     # bitfield FanMode 
     # manual: 1;
@@ -285,7 +297,7 @@ class MainWindow(QMainWindow):
     alarm_config_bf_offset_8 = 0xe
     # BF   SpeedSignalOutput speed_signal_out_mode @ 0xf;
     speed_signal_out_mode_bf_offset_8 = 0xf
-    # le u32!!!! alarm_flow_speed @ 0x12; 
+    # le u24 alarm_flow_speed @ 0x12; 
     alarm_flow_speed_offset_32 = 0x12
     # le u16 alarm_external_temp @ 0x16;
     alarm_external_temp_offset_16 = 0x16
@@ -349,7 +361,6 @@ class MainWindow(QMainWindow):
     pump_speed = 0
     pump_min_speed = 0
     pump_max_speed = 0
-    pump_max_limit = 0 #???
 
     #########################
 
@@ -386,8 +397,8 @@ class MainWindow(QMainWindow):
     sensor_fan_pwm = 0     #?????  % auslastung   100% = 255 raw
     sensor_pump_watts = 0
     sensor_flow_sensor_raw = 0
-    #sensor_flow_sensor_l_p_h = 0
-    ###
+    ######################
+    
     sensor_firmware = 0
     sensor_serial_number = 0
     sensor_device_key = [0, 0, 0, 0, 0, 0]  ###6 bytes
@@ -395,8 +406,6 @@ class MainWindow(QMainWindow):
     
     flow_sensor_l_p_h = 0
     
-    #pump_max_speed_saved = 0
-    #new = 1
     
     def __init__(self):
         #super(self.__class__, self).__init__()
@@ -404,9 +413,10 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
         
-        #sachen initiieren bzw verbinden
-        self.ctrl_report = list(h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE))
-
+        #self.ctrl_report = list(h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE))
+        
+        self.get_report_and_update_local_vars()
+        
         self.ui.stackedWidget_1.setCurrentWidget(self.ui.page_1)
         self.ui.pushButton_1.clicked.connect(self.button_1)
         self.ui.pushButton_2.clicked.connect(self.button_2)
@@ -416,7 +426,7 @@ class MainWindow(QMainWindow):
         self.ui.pushButton_sensor_report.clicked.connect(self.print_sensor_report)
         #self.ui.pushButton_send_ctrl_report.clicked.connect(self.send_ctrl_report)
         
-        self.get_and_read_ctrl_data()
+        #self.get_report_and_update_local_vars()
         
         self.ui.checkBox_extempenable.stateChanged.connect(self.extempenable_changed)
         self.ui.checkBox_flowenable.stateChanged.connect(self.flowenable_changed)
@@ -524,7 +534,7 @@ class MainWindow(QMainWindow):
         
         #self.ui.pushButton_get_new_ctrl_data.clicked.connect(self.get_new_ctrl_data_and_update_gui)
         
-        self.ui.pushButton_save_ctrl_report_to_disk.clicked.connect(self.get_and_save_ctrl_report_to_disk)
+        self.ui.pushButton_save_reports_to_disk.clicked.connect(self.get_and_save_reports_to_disk)
         
         ### signals
         self.sensor_pump_infos_signal.connect(self.recieve_pump_infos)
@@ -535,12 +545,10 @@ class MainWindow(QMainWindow):
         self.setup_plots()
 
         #####################################
+
         self.load_settings()
-        self.update_gui()
-        
-        #self.pump_max_speed = conv_raw_to_rpm_pump(read_int16_le(self.ctrl_report, self.pump_max_speed_offset_16))
-        #self.ui.horizontalSlider_pump_auto_max.setValue(self.pump_max_speed)
-        
+
+        self.update_gui_from_local_vars()
         
         
     #######################################################
@@ -551,11 +559,11 @@ class MainWindow(QMainWindow):
         self.sensor_serial_number = sensor_serial_number
         self.sensor_device_key = sensor_device_key
         #firmware 
-        self.ui.lineEdit_settings_firmware.setText(str(self.sensor_firmware))
+        #self.ui.lineEdit_settings_firmware.setText(str(self.sensor_firmware))
         #serial_number 
-        self.ui.lineEdit_settings_serial.setText(str(self.sensor_serial_number))
+        #self.ui.lineEdit_settings_serial.setText(str(self.sensor_serial_number))
         #device_key = [0, 0, 0, 0, 0, 0]  ###6 bytes
-        self.ui.lineEdit_settings_device_key.setText(str([hex(x) for x in self.sensor_device_key]))
+        #self.ui.lineEdit_settings_device_key.setText(str([hex(x) for x in self.sensor_device_key]))
         
     
     def recieve_new_sensor_values(self, sensor_fan_voltage, sensor_pump_voltage, sensor_pump_curr, sensor_temp_sensor_fan_amp, sensor_temp_sensor_ext, sensor_temp_sensor_int, sensor_pump_speed, sensor_fan_speed, sensor_fan_status, sensor_fan_pwm, sensor_pump_watts, sensor_flow_sensor_raw):
@@ -573,7 +581,7 @@ class MainWindow(QMainWindow):
         self.sensor_fan_pwm = sensor_fan_pwm     #?????  % auslastung   100% = 255 raw
         self.sensor_pump_watts = sensor_pump_watts
         self.sensor_flow_sensor_raw = sensor_flow_sensor_raw
-        #nix self.sensor_flow_sensor_l_p_h = sensor_flow_sensor_l_p_h
+
         
         
         if (self.ui.checkBox_extempenable.isChecked() == True ):
@@ -747,15 +755,21 @@ class MainWindow(QMainWindow):
 
    
     
-    def get_and_save_ctrl_report_to_disk(self):
-        ausgabefile = open(self.ui.lineEdit_ctrl_report_file_name.text(), "bw")
-        reportdaten = list(h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE))    #51 dec
+    def get_and_save_reports_to_disk(self):
+        ausgabefile = open(self.ui.lineEdit_ctrl_report_file_name.text() + "_control.bin", "bw")
+        reportdaten = list(h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE))    
         ausgabefile.write(bytes(reportdaten))
         ausgabefile.close()
-        print("saved", self.ui.lineEdit_ctrl_report_file_name.text())
+        print("saved", self.ui.lineEdit_ctrl_report_file_name.text() + "_control.bin")
     
-    
-    def update_ctrl_report(self):
+        ausgabefile = open(self.ui.lineEdit_ctrl_report_file_name.text() + "_sensor.bin", "bw")
+        reportdaten = list(h.get_feature_report(AQUASTREAMXT_SENSOR_FEATURE_REPORT_ID, AQUASTREAMXT_SENSOR_REPORT_SIZE))  
+        ausgabefile.write(bytes(reportdaten))
+        ausgabefile.close()
+        print("saved", self.ui.lineEdit_ctrl_report_file_name.text() + "_sensor.bin")
+        
+        
+    def update_local_ctrl_report(self):
     
         # # BF   PumpMode pump_mode @ 0x3;
         # pump_mode_bf_offset_8 = 0x3
@@ -765,7 +779,7 @@ class MainWindow(QMainWindow):
         # alarm_config_bf_offset_8 = 0xe
         # # BF   SpeedSignalOutput speed_signal_out_mode @ 0xf;
         # speed_signal_out_mode_bf_offset_8 = 0xf
-        # # le u32!!!! alarm_flow_speed @ 0x12; 
+        # # le u24 alarm_flow_speed @ 0x12; 
         # alarm_flow_speed_offset_32 = 0x12
         # # le u16 alarm_external_temp @ 0x16;
         # alarm_external_temp_offset_16 = 0x16
@@ -809,8 +823,9 @@ class MainWindow(QMainWindow):
         # fan_mode_bf = 0
         self.ctrl_report[self.fan_mode_bf_offset_8] = self.fan_mode_bf
 
-        #write_int32_le(int32val, report, offset):
+        #write_int24_le(int24val, report, offset):
         # alarm_flow_speed = 0
+        #write_int24_le(self.alarm_flow_speed, self.ctrl_report, self.alarm_flow_speed_offset_32)
         write_int32_le(self.alarm_flow_speed, self.ctrl_report, self.alarm_flow_speed_offset_32)
         # alarm_external_temp = 0
         write_int16_le(self.alarm_external_temp, self.ctrl_report, self.alarm_external_temp_offset_16)
@@ -839,7 +854,7 @@ class MainWindow(QMainWindow):
         # fan_max_temp = 0
         write_int16_le(self.fan_max_temp , self.ctrl_report, self.fan_max_temp_offset_16)
         
-        
+        #FANS
         #write_int16_le(self., self.ctrl_report, self.)
         # fan_target_temp = 0
         write_int16_le(self.fan_target_temp, self.ctrl_report, self.fan_target_temp_offset_16)
@@ -852,6 +867,7 @@ class MainWindow(QMainWindow):
         # fan_max_pwm = 0
         self.ctrl_report[self.fan_max_pwm_offset_8] = int(self.fan_max_pwm * 2.55)
         
+        #PUMP
         # pump_speed = 0     
         write_int16_le(conv_rpm_to_raw_pump(self.pump_speed), self.ctrl_report, self.pump_speed_offset_16)
         # pump_min_speed = 0
@@ -860,29 +876,9 @@ class MainWindow(QMainWindow):
         write_int16_le(conv_rpm_to_raw_pump(self.pump_max_speed), self.ctrl_report, self.pump_max_speed_offset_16)
     
     
-    def save_to_pump(self):
-        
-        #app.processEvents()
-        self.ui.pushButton_pump_save_to_pump.blockSignals(True)
-        self.ui.pushButton_fans_save_to_pump.blockSignals(True)
-        self.ui.pushButton_settings_save_to_pump.blockSignals(True)
-        #self.ui.pushButton_pump_save_to_pump.disconnect(self.save_to_pump)
-        #self.ui.pushButton_fans_save_to_pump.disconnect(self.save_to_pump)
-        #self.ui.pushButton_settings_save_to_pump.disconnect(self.save_to_pump)
-        
-        self.ui.pushButton_pump_save_to_pump.setDisabled(True)
-        self.ui.pushButton_fans_save_to_pump.setDisabled(True)
-        self.ui.pushButton_settings_save_to_pump.setDisabled(True)
- 
-        self.ui.pushButton_pump_save_to_pump.repaint()
-        self.ui.pushButton_fans_save_to_pump.repaint()
-        self.ui.pushButton_settings_save_to_pump.repaint()
-        
-        app.processEvents()
- 
-        print("save to pump")
-        
-    ###########    
+    
+    def save_gui_values_into_local_vars(self):
+        ###########    
         #PUMP           when setting pump speed manually its limited by max_speed value
         
         # self.pump_speed = conv_raw_to_rpm_pump(read_int16_le(self.ctrl_report, self.pump_speed_offset_16))
@@ -896,7 +892,7 @@ class MainWindow(QMainWindow):
         #else:
             
         self.pump_max_speed = self.ui.spinBox_pump_auto_max.value()
-    ###########    
+        ###########    
         
         # self.bitfield_pump_mode_hold_min = get_bit(self.ctrl_report[self.pump_mode_bf_offset_8],self.bitfield_pump_mode_hold_min_offset)
         self.bitfield_pump_mode_hold_min = int(self.ui.checkBox_pump_auto_no_below.isChecked())
@@ -907,10 +903,10 @@ class MainWindow(QMainWindow):
         if (self.ui.radioButton_pump_manual.isChecked() == True):
             self.bitfield_pump_mode_auto_man = 0
         
-        #print("alarm_flow_speed_le_32bit", self.alarm_flow_speed)
-        # self.alarm_flow_speed = read_int32_le(self.ctrl_report, self.alarm_flow_speed_offset_32)
+
         self.alarm_flow_speed = 3994070 / self.ui.spinBox_alarm_flow_min.value()   #3994128.7777    #3994070 fast
-        #print("fs", self.alarm_flow_speed)
+        #self.alarm_flow_speed = 3994070 / 0.01   #3994128.7777    #3994070 fast
+        
         # self.alarm_external_temp = read_int16_le(self.ctrl_report, self.alarm_external_temp_offset_16)
         self.alarm_external_temp = self.ui.spinBox_alarm_ext_temp_max.value() * 100
         # self.alarm_int_temp = read_int16_le(self.ctrl_report, self.alarm_int_temp_offset_16)
@@ -974,7 +970,7 @@ class MainWindow(QMainWindow):
             self.fan_d = 100
             self.fan_min_temp = 1900
             self.fan_max_temp = 3600
-            print("Save PID 0")
+            print("Save PID +-0")
         #+1
         if (self.ui.comboBox_fans_pid.currentIndex() == 3):
             self.fan_hysteresis = 100
@@ -1080,13 +1076,17 @@ class MainWindow(QMainWindow):
         # bitfield_speed_signal_output_flow_sensor = 0
         # bitfield_speed_signal_output_pump_speed = 0
         # bitfield_speed_signal_output_static_speed = 0
-        # bitfield_speed_signal_output_switch_off_on_alarm = 0    #only applys on static output
+        # bitfield_speed_signal_output_switch_off_on_alarm = 0    
         
         self.speed_signal_out_mode_bf = update_bit(self.speed_signal_out_mode_bf, self.bitfield_speed_signal_output_fan_speed_offset, self.bitfield_speed_signal_output_fan_speed)
+        
+        #!! flowrate as RPM output does not work for me and doesnt even work with windows + official software
         self.speed_signal_out_mode_bf = update_bit(self.speed_signal_out_mode_bf, self.bitfield_speed_signal_output_flow_sensor_offset, self.bitfield_speed_signal_output_flow_sensor)
+        
         self.speed_signal_out_mode_bf = update_bit(self.speed_signal_out_mode_bf, self.bitfield_speed_signal_output_pump_speed_offset, self.bitfield_speed_signal_output_pump_speed)
         self.speed_signal_out_mode_bf = update_bit(self.speed_signal_out_mode_bf, self.bitfield_speed_signal_output_static_speed_offset, self.bitfield_speed_signal_output_static_speed)
         self.speed_signal_out_mode_bf = update_bit(self.speed_signal_out_mode_bf, self.bitfield_speed_signal_output_switch_off_on_alarm_offset, self.bitfield_speed_signal_output_switch_off_on_alarm)
+
         
         #self.fan_mode_bf
         # bitfield_fan_mode_manual_offset = 0
@@ -1113,13 +1113,39 @@ class MainWindow(QMainWindow):
         self.pump_mode_bf = update_bit( self.pump_mode_bf, self.bitfield_pump_mode_hold_min_offset, self.bitfield_pump_mode_hold_min)
         self.pump_mode_bf = update_bit( self.pump_mode_bf, self.bitfield_pump_mode_aquabus_flow_offset, self.bitfield_pump_mode_aquabus_flow)
         self.pump_mode_bf = update_bit( self.pump_mode_bf, self.bitfield_pump_mode_auto_man_offset, self.bitfield_pump_mode_auto_man)
+    
+    
+    def save_to_pump(self):
+        
+        print("save to pump")
+        
+        #reason for this is if you click multiple times on save to pump button it will start the process as often as you have clicked.
+        #now these extra clicks go into nirvana (on the disabled buttons) 
+        
+        self.ui.pushButton_pump_save_to_pump.blockSignals(True)
+        self.ui.pushButton_fans_save_to_pump.blockSignals(True)
+        self.ui.pushButton_settings_save_to_pump.blockSignals(True)
+        #self.ui.pushButton_pump_save_to_pump.disconnect(self.save_to_pump)
+        #self.ui.pushButton_fans_save_to_pump.disconnect(self.save_to_pump)
+        #self.ui.pushButton_settings_save_to_pump.disconnect(self.save_to_pump)
+        
+        self.ui.pushButton_pump_save_to_pump.setDisabled(True)
+        self.ui.pushButton_fans_save_to_pump.setDisabled(True)
+        self.ui.pushButton_settings_save_to_pump.setDisabled(True)
+ 
+        self.ui.pushButton_pump_save_to_pump.repaint()
+        self.ui.pushButton_fans_save_to_pump.repaint()
+        self.ui.pushButton_settings_save_to_pump.repaint()
+        
+        app.processEvents()  
+ 
+        self.save_gui_values_into_local_vars()   #gui -> local vars
         
         
-        
+        self.update_local_ctrl_report()   #new local vars -> local ctrl_report
         self.print_data()
-        self.update_ctrl_report()
         
-        ##############################################  HID Transfer 
+        ##############################################  HID Transfer #  local ctrl_report -> via usb to pump
         #sensorthread.sensor_hid_active = 0
         #sensorthread.main_hid_active = 0
     
@@ -1131,23 +1157,26 @@ class MainWindow(QMainWindow):
         try:
             h.send_feature_report(bytes(self.ctrl_report))
         except:
-            print("hid error 1")
+            print("hid error send ctrl report")
             
         try:
             h.send_feature_report(bytes(sec_ctrl_report))
         except:
-            print("hid error 2")
+            print("hid error send sec ctrl report")
         
-        time.sleep(1)
+        print("report sended")
         
+        #time.sleep(1)
+        
+        #########
         try:
-            self.get_and_read_ctrl_data()
+            self.get_report_and_update_local_vars()
         except:
-            print("hid error 3")
+            print("hid error get ctrl report")
             
-        self.update_gui()
-        print("report gesendet")
-        
+        self.update_gui_from_local_vars()
+        print("report loaded")
+ 
         sensorthread.main_hid_active = 0
         ########################################## Hid transfer end
         
@@ -1156,7 +1185,7 @@ class MainWindow(QMainWindow):
         self.timer2.setInterval(10)
         self.timer2.timeout.connect(self.enable_pump_buttons)
         self.timer2.start()
-        
+        #self.enable_pump_buttons()
         
     def enable_pump_buttons(self):    ##reason for this is if you click multiple times on save to pump button it will start the process as often as you have clicked.
                                         ## now these extra clicks go into nirvana (on the disabled buttons) 
@@ -1172,7 +1201,7 @@ class MainWindow(QMainWindow):
         self.ui.pushButton_fans_save_to_pump.repaint()
         self.ui.pushButton_settings_save_to_pump.repaint()
         
-        self.timer2.stop()
+        #self.timer2.stop()
         
         
     def spinBox_settings_ext_offset_valueChanged(self):
@@ -1407,14 +1436,16 @@ class MainWindow(QMainWindow):
         self.ui.pushButton_3.setFont(self.stdfont)
         self.ui.pushButton_4.setFont(self.boldfont)        
         
-    def get_and_read_ctrl_data(self):
-        self.ctrl_report = list(h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE))    #51 dez
+    def get_report_and_update_local_vars(self):
+    
+        self.ctrl_report = list(h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE))   
         
         self.pump_mode_bf = self.ctrl_report[self.pump_mode_bf_offset_8]
         self.alarm_config_bf = self.ctrl_report[self.alarm_config_bf_offset_8]
         self.speed_signal_out_mode_bf = self.ctrl_report[self.speed_signal_out_mode_bf_offset_8]
         self.fan_mode_bf = self.ctrl_report[self.fan_mode_bf_offset_8]
         self.alarm_flow_speed = read_int32_le(self.ctrl_report, self.alarm_flow_speed_offset_32)
+        #self.alarm_flow_speed = read_int24_le(self.ctrl_report, self.alarm_flow_speed_offset_32)
         self.alarm_external_temp = read_int16_le(self.ctrl_report, self.alarm_external_temp_offset_16)
         self.alarm_int_temp = read_int16_le(self.ctrl_report, self.alarm_int_temp_offset_16)
         self.fan_pwm = int(self.ctrl_report[self.fan_pwm_offset_8] / 2.54)
@@ -1458,8 +1489,7 @@ class MainWindow(QMainWindow):
         self.bitfield_pump_mode_aquabus_flow = get_bit(self.ctrl_report[self.pump_mode_bf_offset_8],self.bitfield_pump_mode_aquabus_flow_offset)
         self.bitfield_pump_mode_auto_man = get_bit(self.ctrl_report[self.pump_mode_bf_offset_8],self.bitfield_pump_mode_auto_man_offset)
     
-        #test
-        #self.fan_hysteresis = 123
+
     
     def print_data(self):
         
@@ -1468,7 +1498,7 @@ class MainWindow(QMainWindow):
         print("alarm_config_bf", "{:08b}".format(self.alarm_config_bf))
         print("speed_signal_out_mode_bf", "{:08b}".format(self.speed_signal_out_mode_bf))
         print("fan_mode_bf", "{:08b}".format(self.fan_mode_bf))
-        print("alarm_flow_speed_le_32bit", self.alarm_flow_speed)
+        print("alarm_flow_speed_le_32bit", int(self.alarm_flow_speed), hex(int(self.alarm_flow_speed)), "-- ",self.ui.spinBox_alarm_flow_min.value(),  str([hex(x) for x in self.ctrl_report[0x12:0x16]]))
         print("alarm_external_temp", self.alarm_external_temp)
         print("alarm_int_temp", self.alarm_int_temp)
         print("fan_hysteresis", self.fan_hysteresis)
@@ -1507,23 +1537,16 @@ class MainWindow(QMainWindow):
         print("##########################################")
         
     def print_ctrl_report(self):
-        self.get_and_read_ctrl_data()
-        self.print_data()
+        self.get_report_and_update_local_vars()
+        self.print_data()       #from local vars
             
-    def get_new_ctrl_data_and_update_gui(self):  
-        self.get_and_read_ctrl_data()
-        self.update_gui()
-        print("got new ctrl data")
     
     def print_sensor_report(self):
-        #print("out of order")
         sensorthread.get_new_sensor_data()
-        sensorthread.print_data()
-        #sensorthread.print_report_signal.emit(self)
+        sensorthread.print_data() #from local vars in sensorthread 
+
                 
     def load_settings(self): 
-        #print(root.find('fan/checkbox_1_bla_val').get('val'))
-        #root.find('fan/checkbox_1_bla_val').set('val', "nein")
         
         #Sensors 
         self.ui.checkBox_flowenable.setChecked( eval( root.find('sensors/checkBox_flowenable').get('val')))
@@ -1548,7 +1571,7 @@ class MainWindow(QMainWindow):
         root.find('settings/ext_temp_offset').set('val', str(self.ui.spinBox_settings_ext_offset.value()))
         root.find('settings/int_temp_offset').set('val', str(self.ui.spinBox_settings_int_offset.value()))
         
-    def update_gui(self):
+    def update_gui_from_local_vars(self):
 
         #PUMP
         ############################AUTOMATIC
@@ -1805,7 +1828,7 @@ class sensor_thread(threading.Thread):
                 self.get_new_sensor_data()
             except:
                 hid_counter = hid_counter +1
-                print("oops usb hid error ", hid_counter)
+                print("oops usb hid error counter = ", hid_counter)
             
             self.sensor_hid_active = 0    
 
@@ -1830,9 +1853,9 @@ class sensor_thread(threading.Thread):
         print("fan_status", self.fan_status)   
         print("fan_pwm", self.fan_pwm)  
         print("fan_voltage", self.fan_voltage)
-        print("firmware", self.firmware)
-        print("serial_number", self.serial_number)
-        print("device_key", [hex(x) for x in self.device_key])
+        #print("firmware", self.firmware)
+        #print("serial_number", self.serial_number)
+        #print("device_key", [hex(x) for x in self.device_key])
         print("##################")
      
     def get_new_sensor_data(self):
@@ -1864,7 +1887,7 @@ class sensor_thread(threading.Thread):
         
     def get_pump_infos(self):
     
-        self.sensor_report = h.get_feature_report(AQUASTREAMXT_SENSOR_FEATURE_REPORT_ID, AQUASTREAMXT_SENSOR_REPORT_SIZE)    #66 dez
+        self.sensor_report = h.get_feature_report(AQUASTREAMXT_SENSOR_FEATURE_REPORT_ID, AQUASTREAMXT_SENSOR_REPORT_SIZE)    
 
         self.firmware = read_int16_le(self.sensor_report, self.firmware_offset_16)
         self.serial_number = read_int16_le(self.sensor_report, self.serial_number_offset_16)
@@ -1885,6 +1908,16 @@ if __name__ == '__main__':
   
     app = QApplication(sys.argv)
 
+    ###### tray icon
+    if not QSystemTrayIcon.isSystemTrayAvailable():
+        QMessageBox.critical(None, "Systray", "I couldn't detect any system tray on this system.")
+        sys.exit(1)
+
+    #print(QSystemTrayIcon.isSystemTrayAvailable())
+    #QApplication.setQuitOnLastWindowClosed(False)
+    #######
+
+
     prog = MainWindow()
     prog.show()
 
@@ -1899,8 +1932,7 @@ if __name__ == '__main__':
     ##########################
     
     app.exec()      #prog start
-    #sys.exit(app.exec())
-    
+        
     ###########################     #Thread stoppen
                                 
     if(sensorthread.is_alive()==True): #wenn defined und aktiv

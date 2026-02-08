@@ -1,0 +1,1 @@
+- Flowrate as RPM output does not work for me and doesnt even work under windows + official software. firmware bug? thoughts?

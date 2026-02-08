@@ -180,7 +180,7 @@
      <enum>QFrame::Shadow::Plain</enum>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>3</number>
     </property>
     <widget class="QWidget" name="page_1">
      <widget class="QCheckBox" name="checkBox_flowenable">
@@ -1967,7 +1967,7 @@ Save to Pump</string>
      </widget>
      <widget class="QLineEdit" name="lineEdit_settings_firmware">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -1986,7 +1986,7 @@ Save to Pump</string>
      </widget>
      <widget class="QLineEdit" name="lineEdit_settings_device_key">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -2012,7 +2012,7 @@ Save to Pump</string>
      </widget>
      <widget class="QLineEdit" name="lineEdit_settings_serial">
       <property name="enabled">
-       <bool>true</bool>
+       <bool>false</bool>
       </property>
       <property name="geometry">
        <rect>
@@ -2030,6 +2030,9 @@ Save to Pump</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_32">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>40</x>
@@ -2046,6 +2049,9 @@ Save to Pump</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_33">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>40</x>
@@ -2062,6 +2068,9 @@ Save to Pump</string>
       </property>
      </widget>
      <widget class="QLabel" name="label_34">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>40</x>
@@ -2188,8 +2197,8 @@ Save to Pump</string>
      <widget class="QCheckBox" name="checkBox_source_turn_off_when_alarm">
       <property name="geometry">
        <rect>
-        <x>630</x>
-        <y>119</y>
+        <x>550</x>
+        <y>140</y>
         <width>231</width>
         <height>21</height>
        </rect>
@@ -2341,6 +2350,9 @@ Save to Pump</string>
         <height>22</height>
        </rect>
       </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_alarm_ext_temp_max">
       <property name="enabled">
@@ -2354,6 +2366,9 @@ Save to Pump</string>
         <height>22</height>
        </rect>
       </property>
+      <property name="minimum">
+       <number>1</number>
+      </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_alarm_flow_min">
       <property name="enabled">
@@ -2366,6 +2381,9 @@ Save to Pump</string>
         <width>61</width>
         <height>22</height>
        </rect>
+      </property>
+      <property name="minimum">
+       <number>1</number>
       </property>
       <property name="maximum">
        <number>1000</number>
@@ -2585,7 +2603,7 @@ Save to Pump</string>
        <string>-&gt; Aquabus (not supported)</string>
       </property>
      </widget>
-     <widget class="QPushButton" name="pushButton_save_ctrl_report_to_disk">
+     <widget class="QPushButton" name="pushButton_save_reports_to_disk">
       <property name="geometry">
        <rect>
         <x>230</x>
@@ -2595,7 +2613,7 @@ Save to Pump</string>
        </rect>
       </property>
       <property name="text">
-       <string>save ctrl report</string>
+       <string>save reports to disk</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="lineEdit_ctrl_report_file_name">
@@ -2608,7 +2626,10 @@ Save to Pump</string>
        </rect>
       </property>
       <property name="text">
-       <string>my_ctrl_feature_xy.bin</string>
+       <string>my_report_xy</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignmentFlag::AlignCenter</set>
       </property>
      </widget>
      <widget class="Line" name="line_5">
