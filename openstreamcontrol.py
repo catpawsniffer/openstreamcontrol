@@ -172,28 +172,28 @@ def update_bit(byte, pos, bit):
         
 ###############################################
 
-#Check for Aquabus
+# #Check for Aquabus
     
-aqaubus_adress_offset = 0x01  #aquabus adress
-aquabus_or_flow_offset = 0x02  #0=flow  /  1=aquabus
-aquabus_sensors_select_offset = 0x05  #Sensors on aquabus  0=electronicstemp / 1=externalsensor / 2=watertemp / 0xff=no_sensor
+# aqaubus_adress_offset = 0x01  #aquabus adress
+# aquabus_or_flow_offset = 0x02  #0=flow  /  1=aquabus
+# aquabus_sensors_select_offset = 0x05  # uncertain
 
-reportdata= h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE)
+# reportdata= h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE)
 
-if (reportdata[aquabus_or_flow_offset] == 1):
-    print("")
-    print("Your Pump seems to be configured to use Aquabus")
-    print("Aquabus not supported. wrong settings can damage your hardware!!")
-    print("Use original software to change")
-    print("Only flow sensor setup is supported")
-    print("I dont want to be reliable for any hardware damage")
-    print("Good bye")
-    exit()
+# if (reportdata[aquabus_or_flow_offset] == 1):
+    # print("")
+    # print("Your Pump seems to be configured to use Aquabus")
+    # print("Aquabus not supported. wrong settings can damage your hardware!!")
+    # print("Use original software to change")
+    # print("Only flow sensor setup is supported")
+    # print("I dont want to be reliable for any hardware damage")
+    # print("Good bye")
+    # exit()
 
-if (reportdata[aquabus_or_flow_offset] == 0):  #just a double check
-    print("Aquabus disabled. good")
-else:
-    exit()
+# if (reportdata[aquabus_or_flow_offset] == 0):  #just a double check
+    # print("Aquabus disabled. good")
+# else:
+    # exit()
     
 #################################################
 
