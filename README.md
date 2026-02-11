@@ -1,6 +1,6 @@
 ﻿# OpenStreamControl
 
-**A simple Python Programm to Control the Aquastream XT Pump from Aquacomputer (Linux + Windows)**
+**A simple Python Programm with Gui to Control the Aquastream XT Pump from Aquacomputer (Linux + Windows)**
 
 
 ### LINUX:
