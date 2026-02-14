@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'guiGPNKCK.ui'
+## Form generated from reading UI file 'guiWpbpmK.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.10.2
 ##
@@ -834,7 +834,7 @@ class Ui_MainWindow(object):
         self.label_29.setText(QCoreApplication.translate("MainWindow", u"Fan pwm", None))
         self.pushButton_ctrl_report.setText(QCoreApplication.translate("MainWindow", u"get and print ctrl report", None))
         self.pushButton_sensor_report.setText(QCoreApplication.translate("MainWindow", u"get and print sensor report", None))
-        self.label_6.setText(QCoreApplication.translate("MainWindow", u"Flow Sensor Calibration Inpulses/Liter", None))
+        self.label_6.setText(QCoreApplication.translate("MainWindow", u"Flow Sensor Calibration Impulses/Liter", None))
         self.label_31.setText(QCoreApplication.translate("MainWindow", u"Flow l/h", None))
         self.label_32.setText(QCoreApplication.translate("MainWindow", u"Firmware", None))
         self.label_33.setText(QCoreApplication.translate("MainWindow", u"Device Key", None))

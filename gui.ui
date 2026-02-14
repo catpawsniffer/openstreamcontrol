@@ -1936,7 +1936,7 @@ Save to Pump</string>
        </rect>
       </property>
       <property name="text">
-       <string>Flow Sensor Calibration Inpulses/Liter</string>
+       <string>Flow Sensor Calibration Impulses/Liter</string>
       </property>
      </widget>
      <widget class="QLineEdit" name="lineEdit_settings_flow">
