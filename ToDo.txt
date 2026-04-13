@@ -1,1 +1,2 @@
 - Flowrate as RPM output does not work for me and doesnt even work under windows + official software. firmware bug? thoughts?
+- In windows the GUI is partly "bugged" (up down arrows of certain Fields are way to big)
