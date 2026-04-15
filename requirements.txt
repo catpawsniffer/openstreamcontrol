@@ -1,0 +1,4 @@
+hid
+pyside6
+pyqtgraph
+colorama

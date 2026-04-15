@@ -19,20 +19,21 @@ Google is your friend.
 
 ########################
 
-If you want to run the python script directly:
+If you want to run the python script directly, you will need python 3.
 
-you need:
+To install all dependencies to a virtual environment:
+```
+python -m venv venv
+source venv/bin/activate
+python -m pip install -r requirements.txt
+python openstreamcontrol.py
+```
 
-"python3"
-
-and following python modules:
-
-"Python hidapi bindings in ctypes (aka pyhidapi)"
-"pyside6" and
-"pyqtgraph"
-"colorama"
-
-start with "python3 ./openstreamcontrol.py"
+To run openstreamcontrol:
+```
+source venv/bin/activate
+python openstreamcontrol.py
+```
 
 
 #####################
