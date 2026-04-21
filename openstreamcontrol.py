@@ -49,65 +49,117 @@ import pyqtgraph as pg
 #############################################################
 #############################################################
 
-hid_counter=0
 
-tree = ET.parse("settings.xml") 
-root = tree.getroot() 
+#define USB_VENDOR_ID_AQUACOMPUTER	0x0c70
+#define USB_PRODUCT_ID_AQUASTREAMULT	0xf00b
+#define USB_PRODUCT_ID_AQUASTREAMXT	    0xf0b6
+#prod_string = "aquastream XT"
+#prod_string = "aquastream ULTIMATE"
+
+############################ AQUASTREAM ULTIMATE
+
+#/* Sensor report offsets for the Aquastream Ultimate pump */
+
+#define AQUASTREAMULT_SENSOR_START		0x2D
+#define AQUASTREAMULT_PUMP_OFFSET		0x51
+#define AQUASTREAMULT_PUMP_VOLTAGE		0x3D
+#define AQUASTREAMULT_PUMP_CURRENT		0x53
+#define AQUASTREAMULT_PUMP_POWER		0x55
+#define AQUASTREAMULT_FAN_OFFSET		0x41
+#define AQUASTREAMULT_PRESSURE_OFFSET		0x57
+#define AQUASTREAMULT_FLOW_SENSOR_OFFSET	0x37
+#define AQUASTREAMULT_FAN_VOLTAGE_OFFSET	0x02
+#define AQUASTREAMULT_FAN_CURRENT_OFFSET	0x00
+#define AQUASTREAMULT_FAN_POWER_OFFSET		0x04
+#define AQUASTREAMULT_FAN_SPEED_OFFSET		0x06    
+
+#/*
+# * The HID report that the official software always sends
+# * after writing values, same for all devices, except Aquaero
+# */
+
+AQUASTREAM_ULTIMATE_SECONDARY_CTRL_REPORT_ID	= 0x02    #check
+AQUASTREAM_ULTIMATE_SECONDARY_CTRL_REPORT_SIZE	= 0x0B    
+
+aquastream_ultimate_secondary_ctrl_report = [0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x34, 0xC6]    #check
+
+AQUASTREAM_ULTIMATE_CONTROL_REPORT_ID	= 0x03    #check
+AQUASTREAM_ULTIMATE_SENSORS_REPORT_ID	= 0x01    
+
+#AQUASTREAM_ULTIMATE_SENSOR_REPORT_SIZE  = 0x67    #check
+#AQUASTREAM_ULTIMATE_CTRL_REPORT_SIZE    = 0x109
+AQUASTREAM_ULTIMATE_SENSOR_REPORT_SIZE  = 0x67    #check
+AQUASTREAM_ULTIMATE_CTRL_REPORT_SIZE    = 0x109
 
 
-#vid 0x0c70    pid 0xf0b6
-vid = 0x0c70	# 
-pid = 0xf0b6	# Aquastream XT
 
+################################# AQUASTREAMXT
 
-try:
-    h = hid.Device(vid, pid) 
-except:
-    print("Aquastream XT not found")
-    print("or /dev/hidraw* not accessible as current user") 
-    print("Check how to gain access as normal user")
-    exit()
+#/* Report IDs for legacy devices */
+#define AQUASTREAMXT_STATUS_REPORT_ID	0x04
+#define AQUASTREAMXT_CTRL_REPORT_ID	0x06
+#define AQUASTREAMXT_SENSOR_REPORT_SIZE		0x42
+#define AQUASTREAMXT_CTRL_REPORT_SIZE		0x34
 
-#h.nonblocking=1  
-
-print("")
-
-print("Pump found:")
-
-print("Manufacturer: %s" % h.manufacturer)
-print("Product: %s" % h.product)
-#print("Serial No: %s" % h.serial)
-
-#manufacturer_string = h.manufacturer()
-product_string = h.product
-
-
-AQUASTREAMXT_SENSOR_FEATURE_REPORT_ID = 0x04   #feature report nr 4
+AQUASTREAMXT_SENSOR_FEATURE_REPORT_ID = 0x04   
 AQUASTREAMXT_CTRL_FEATURE_REPORT_ID	= 0x06
 
 #define AQUASTREAMXT_SENSOR_REPORT_SIZE		0x42
 #define AQUASTREAMXT_CTRL_REPORT_SIZE		0x34
-AQUASTREAMXT_SENSOR_REPORT_SIZE	= 0x43   #0x42 = 66dec // 0x43 = 67dec   report is 66 bytes
-AQUASTREAMXT_CTRL_REPORT_SIZE =	0x34     #0x34 52d // ox33 = 51dec  report is 51 bytes
+AQUASTREAMXT_SENSOR_REPORT_SIZE	= 0x43   #0x42 = 66dec // 0x43 = 67dec   report is 66 bytes    #hid transfer function wants it that way? otherwise it fails
+AQUASTREAMXT_CTRL_REPORT_SIZE =	0x34     #0x34 52d // 0x33 = 51dec  report is 51 bytes
 
 #The HID report that the official software always sends after writing value
 #/* Secondary HID report values for Aquastream XT */
 AQUASTREAMXT_SECONDARY_CTRL_REPORT_ID	= 0x02
 AQUASTREAMXT_SECONDARY_CTRL_REPORT_SIZE	= 0x04
 
-#sec_ctrl_report=[0x02, 0x05, 0x00, 0x00] #works
-sec_ctrl_report=[0x02, 0x05, 0x00, 0x00]
+aquastream_xt_sec_ctrl_report=[0x02, 0x05, 0x00, 0x00]
+    
+#########################
+
+hid_counter=0
+
+tree = ET.parse("settings.xml") 
+root = tree.getroot() 
+
+vid_aquacomputer = 0x0c70	#vendor id
+pid_xt = 0xf0b6	            #product id Aquastream XT
+pid_ult = 0xf00b	        #product id Aquastream Ultimate
 
 
-#ausgabefile = open("meine_ctrl_feature_123.bin", "bw")
-#reportdaten= h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE)    
-#ausgabefile.write(bytes(reportdaten))
-#ausgabefile.close()
+try:
+    h = hid.Device(vid_aquacomputer, pid_xt) 
+except:
+    try:
+        h = hid.Device(vid_aquacomputer, pid_ult) 
+    except:
+        print("Aquastream XT/Ultimate not found")
+        print("or /dev/hidraw* not accessible as current user") 
+        print("Check how to gain access as normal user")
+        exit()
 
-#ausgabefile = open("meine_sensor_feature_123.bin", "bw")
-#reportdaten = h.get_feature_report(AQUASTREAMXT_SENSOR_FEATURE_REPORT_ID, AQUASTREAMXT_SENSOR_REPORT_SIZE)    
-#ausgabefile.write(bytes(reportdaten))
-#ausgabefile.close()
+
+print("")
+print("Pump found:")
+print("Manufacturer: %s" % h.manufacturer)
+#print("Product: %s" % h.product +"E")
+
+product_string = h.product
+#product_string = "aquastream XT " #space at end
+#product_string = "aquastream ULTIMATE"
+
+#if  (product_string == 'aquastream XT '):
+
+def conv_rpm_to_raw_pump(rpmval):
+    return int(45000000 / rpmval)
+    
+def conv_raw_to_rpm_fan(rpmval):
+    return int(5646000 / rpmval)
+    
+def conv_raw_to_rpm_pump(raw):
+    return int(45000000 / raw)
+
 
 
 def write_int16_le(int16val, report, offset):
@@ -127,33 +179,29 @@ def write_int32_le(int32val, report, offset):
     report[offset+2] = byte3
     report[offset+3] = byte4
     
-# def write_int24_le(int24val, report, offset):
-    # int24val = int(int24val)
-    # byte1 = int24val & 0xff
-    # byte2 = (int24val & 0xff00) >> 8
-    # byte3 = (int24val & 0xff0000) >> 16
-    # report[offset] = byte1
-    # report[offset+1] = byte2
-    # report[offset+2] = byte3
+def write_int16_be(int16val, report, offset):
+    ausgabe_h = (( int(int16val) & 0xff00 ) >> 8)
+    ausgabe_l = ( int(int16val) & 0x00ff)
+    report[offset] = ausgabe_h
+    report[offset +1] = ausgabe_l
     
-# def read_int24_le(report, offset):
-    # return(report[offset] + report[offset +1] * 0x100 + report[offset + 2] * 0x10000 )
+def write_int32_be(int32val, report, offset):
+    int32val = int(int32val)
+    byte1 = int32val & 0xff
+    byte2 = (int32val & 0xff00) >> 8
+    byte3 = (int32val & 0xff0000) >> 16
+    byte4 = (int32val & 0xff000000) >> 24
+    report[offset] = byte4
+    report[offset+1] = byte3
+    report[offset+2] = byte2
+    report[offset+3] = byte1    
+    
     
 def read_int16_le(report, offset):
     return (report[offset] + report[offset +1] * 0x100)
     
 def read_int32_le(report, offset):
     return(report[offset] + report[offset +1] * 0x100 + report[offset + 2] * 0x10000 + report[offset +3] * 0x1000000)
-    
-    
-def conv_rpm_to_raw_pump(rpmval):
-    return int(45000000 / rpmval)
-    
-def conv_raw_to_rpm_fan(rpmval):
-    return int(5646000 / rpmval)
-    
-def conv_raw_to_rpm_pump(raw):
-    return int(45000000 / raw)
     
 def get_bit(val, pos):
     return (val >> pos) & 1
@@ -172,29 +220,7 @@ def update_bit(byte, pos, bit):
         
 ###############################################
 
-# #Check for Aquabus
-    
-# aqaubus_adress_offset = 0x01  #aquabus adress
-# aquabus_or_flow_offset = 0x02  #0=flow  /  1=aquabus
-# aquabus_sensors_select_offset = 0x05  # uncertain
-
-# reportdata= h.get_feature_report(AQUASTREAMXT_CTRL_FEATURE_REPORT_ID, AQUASTREAMXT_CTRL_REPORT_SIZE)
-
-# if (reportdata[aquabus_or_flow_offset] == 1):
-    # print("")
-    # print("Your Pump seems to be configured to use Aquabus")
-    # print("Aquabus not supported. wrong settings can damage your hardware!!")
-    # print("Use original software to change")
-    # print("Only flow sensor setup is supported")
-    # print("I dont want to be reliable for any hardware damage")
-    # print("Good bye")
-    # exit()
-
-# if (reportdata[aquabus_or_flow_offset] == 0):  #just a double check
-    # print("Aquabus disabled. good")
-# else:
-    # exit()
-    
+   
 #################################################
 
 class MainWindow(QMainWindow):
@@ -220,14 +246,15 @@ class MainWindow(QMainWindow):
     bitfield_alarm_configuration_amp_temp80_offset = 6
     bitfield_alarm_configuration_amp_temp100_offset = 7
     
-    bitfield_alarm_configuration_external_temp = 0
-    bitfield_alarm_configuration_int_temp = 0
-    bitfield_alarm_configuration_pump = 0
-    bitfield_alarm_configuration_fan_speed = 0
-    bitfield_alarm_configuration_flow_rate = 0
-    bitfield_alarm_configuration_output_overload = 0
-    bitfield_alarm_configuration_amp_temp80 = 0
-    bitfield_alarm_configuration_amp_temp100 = 0
+    bitfield_alarm_configuration_external_temp = 0      #XT + Ult
+    bitfield_alarm_configuration_int_temp = 0           #XT + Ult
+    bitfield_alarm_configuration_pump = 0               #XT
+    bitfield_alarm_configuration_fan_speed = 0          #XT + Ult
+    bitfield_alarm_configuration_flow_rate = 0          #XT + Ult
+    bitfield_alarm_configuration_output_overload = 0    #XT
+    bitfield_alarm_configuration_amp_temp80 = 0         #XT
+    bitfield_alarm_configuration_amp_temp100 = 0        #XT
+    xxxbitfield_alarm_configuration_flow_rate_virtual = 0  #Ult
     
     # bitfield SpeedSignalOutput {
     # fan_speed: 1;
@@ -245,8 +272,8 @@ class MainWindow(QMainWindow):
     bitfield_speed_signal_output_fan_speed = 0
     bitfield_speed_signal_output_flow_sensor = 0
     bitfield_speed_signal_output_pump_speed = 0
-    bitfield_speed_signal_output_static_speed = 0
-    bitfield_speed_signal_output_switch_off_on_alarm = 0    
+    bitfield_speed_signal_output_static_speed = 0           #xt + ult
+    bitfield_speed_signal_output_switch_off_on_alarm = 0    #xt + ult
     
     # bitfield FanMode 
     # manual: 1;
