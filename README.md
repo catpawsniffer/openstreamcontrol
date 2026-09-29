@@ -10,14 +10,14 @@ I compiled the python source into an executable file with all the needed librari
 download package, unpack it and
 just execute "./openstreamcontrol" in the programs directory
 
-#########################
+## 
 
 If you get the message the pump isnt found make sure your user account has access to the /dev/hidraw devices (udev rules)
 
 How to do this depends on your distribution. 
 Google is your friend.
 
-########################
+## 
 
 If you want to run the python script directly, you will need python 3.
 
@@ -36,7 +36,7 @@ python openstreamcontrol.py
 ```
 
 
-#####################
+## 
 
 ### WINDOWS:
 
@@ -49,7 +49,7 @@ use "pip" from python to load  modules "hid", "pyside6" and "pyqtgraph"
 start it with "python3 ./openstreamcontrol.py" in the programs directory
 
 
-####################################
+### 
 
 Uses Qt-6 library https://www.qt.io/development/qt-framework/qt6
 
