@@ -1,6 +1,6 @@
 ﻿# OpenStreamControl
 
-**A simple Python Programm with Gui to Control the Aquastream XT Pump from Aquacomputer (Linux + Windows)**
+**A simple Python Programm with Gui to Control the Aquastream XT Pump from Aquacomputer (Linux)**
 
 
 ### LINUX:
@@ -34,23 +34,7 @@ To run openstreamcontrol:
 source venv/bin/activate
 python openstreamcontrol.py
 ```
-
-
 ## 
-
-### WINDOWS:
-
-you need python v3
-
-download https://github.com/libusb/hidapi and copy "hidapi.dll" to (windir)/system32 folder
-
-use "pip" from python to load  modules "hid", "pyside6" and "pyqtgraph"
-
-start it with "python3 ./openstreamcontrol.py" in the programs directory
-
-
-### 
-
 Uses Qt-6 library https://www.qt.io/development/qt-framework/qt6
-
+## 
 Based on infos from https://github.com/aleksamagicka/aquacomputer_d5next-hwmon
